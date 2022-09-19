@@ -61,6 +61,12 @@ class ViewController: UIViewController {
         calenderViewController.didMove(toParent: self)
     }
     
+    func removeViewFromParent() {
+        calenderViewController.willMove(toParent: nil)
+        calenderViewController.view.removeFromSuperview()
+        calenderViewController.removeFromParent()
+    }
+    
     func configureUI() {
         
         addChildView()
@@ -168,7 +174,11 @@ extension ViewController: ChangeMonthYearViewDelegate {
 extension ViewController: TimeViewDelegate {
     func timeAction() {
         timePickerView.isHidden.toggle()
-        calenderViewController.view.isHidden.toggle()
+        if !timePickerView.isHidden {
+            removeViewFromParent()
+        } else {
+            addChildView()
+        }
     }
 }
 
