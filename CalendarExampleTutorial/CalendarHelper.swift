@@ -115,4 +115,16 @@ class CalendarHelper
                     || calendar.compare(date, to: availabelRange.end, toGranularity: toGranularity) == .orderedSame
         return maxbool && minbool
     }
+    
+    func compare(_ date: Date, to: Date, toGranularity: Calendar.Component) -> Bool {
+        calendar.compare(date, to: to, toGranularity: toGranularity) == .orderedSame
+    }
+    
+    func getHourMinuteAndSecond(_ date: Date) -> (hour: Int, minute: Int, second: Int) {
+        let hour = calendar.component(.hour, from: date)
+        let minute = calendar.component(.minute, from: date)
+        let second = calendar.component(.second, from: date)
+        
+        return (hour: hour, minute: minute, second: second)
+    }
 }

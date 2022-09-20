@@ -118,9 +118,11 @@ public class TimeView: UIStackView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    public func updateTime(_ time: String) {
-        timeButton.setTitle(time, for: .normal)
+    public func updateTime(_ date: Date, timeFormate: TimeFormate) {
+        let formate = timeFormate == .hour12 ? Date.timePreviewAMPMStyleFormatter() : Date.timePreviewStyleFormatter()
+        timeButton.setTitle(formate.string(from: date), for: .normal)
     }
+    
     
     private func configureUI() {
         checkTraitCollection()

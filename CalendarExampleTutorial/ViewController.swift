@@ -79,7 +79,7 @@ class ViewController: UIViewController {
     let currentDate = Calendar.current.date(byAdding: .day, value: -2, to: Date())!.date(in: 7200)
     
     private lazy var changeMonthView: MonthYearView = {
-        let topView = MonthYearView(minDate: minDate, maxDate: maxDate, currentDate: currentDate)
+        let topView = MonthYearView(availabelRanges: .init(start: minDate, end: maxDate), currentDate: currentDate)
         topView.delegate = self
         topView.axis = .horizontal
         topView.distribution = .fill
@@ -101,6 +101,7 @@ class ViewController: UIViewController {
     
     private lazy var timePickerView: TimePickerView = {
         let timePickerView = TimePickerView(minDate: minDate, maxDate: maxDate, currentDate: currentDate, timeFormate: .hour24)
+        timePickerView.delegate = self
         timePickerView.isHidden = true
         return timePickerView
     }()
@@ -223,7 +224,14 @@ extension ViewController: MultiSelectionDateDelegate {
 
 extension ViewController: SingleSelectionDateDelegate {
     func dateSelection(_ selection: SingleSelectionDate, dateComponents: DateComponents?) {
-        print(dateComponents)
+        if var dateComponents = dateComponents {
+            let time = CalendarHelper().getHourMinuteAndSecond(maxDate)
+            dateComponents.hour = time.hour
+            dateComponents.minute = time.minute
+            dateComponents.second = time.second
+            let date = CalendarHelper().getDateFromComponents(dateComponents)
+            timePickerView.updateCurrentDate(date)
+        }
     }
 }
 
@@ -266,6 +274,13 @@ extension ViewController: MonthPickerDelegate {
         calenderViewController.updateSelectedDate(date)
     }
 }
+
+extension ViewController: TimePickerViewDelegate {
+    func updateTime(date: Date) {
+        timeView.updateTime(date, timeFormate: .hour24)
+    }
+}
+
 
 
 

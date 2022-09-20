@@ -112,6 +112,10 @@ public enum TimeFormate: String {
     case hour24
 }
 
+public protocol TimePickerViewDelegate: AnyObject {
+    func updateTime(date: Date)
+}
+
 public class TimePickerView: UIStackView {
     
     private let viewModel: DateTimePickerViewModel
@@ -123,7 +127,7 @@ public class TimePickerView: UIStackView {
         return timePicker
     }()
     
-    public weak var delegate: ChangeMonthYearViewDelegate?
+    public weak var delegate: TimePickerViewDelegate?
     
     public init(minDate: Date, maxDate: Date, currentDate: Date, timeFormate: TimeFormate = .hour24) {
         self.viewModel = DateTimePickerViewModel(minDateTime: minDate, maxDateTime: maxDate, currentDateTime: currentDate, timeFormate: timeFormate)
@@ -152,6 +156,11 @@ public class TimePickerView: UIStackView {
         movePicker()
         viewModel.reconfigureDatasource(getSelectedPickerIndex())
         timePicker.reloadAllComponents()
+    }
+    
+    func updateCurrentDate(_ selectedDate: Date) {
+        viewModel.currentDateTime = selectedDate
+        reloadData()
     }
 }
 
@@ -192,9 +201,12 @@ extension TimePickerView: UIPickerViewDelegate, UIPickerViewDataSource {
         let selectedIndexes = getSelectedPickerIndex()
         viewModel.reconfigureDatasource(selectedIndexes)
         pickerView.reloadAllComponents()
-        
-        let currentDate = Date.string(from: viewModel.currentDateTime, formatter: Date.shortDateFormatter())
-        viewModel.setSelectedDate(currentDate, time: "\(selectedIndexes[0]):\(selectedIndexes[1]):\(selectedIndexes[2])")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            let selectedIndexes = self.getSelectedPickerIndex()
+            let currentDate = Date.string(from: self.viewModel.currentDateTime, formatter: Date.shortDateFormatter())
+            self.viewModel.setSelectedDate(currentDate, time: "\(selectedIndexes[0]):\(selectedIndexes[1]):\(selectedIndexes[2])")
+            self.delegate?.updateTime(date: self.viewModel.currentDateTime)
+        }
     }
     
     public func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat {
