@@ -42,10 +42,10 @@ public class TimeView: UIStackView {
         stackview.isLayoutMarginsRelativeArrangement = true
         stackview.layer.cornerRadius = 4
         
-        
         nowButton.translatesAutoresizingMaskIntoConstraints = false
         nowButton.heightAnchor.constraint(equalToConstant: 32).isActive = true
         nowButton.widthAnchor.constraint(greaterThanOrEqualToConstant: 60).isActive = true
+        
         return stackview
     }()
     
@@ -77,8 +77,7 @@ public class TimeView: UIStackView {
         stackview.layer.cornerRadius = 4
         
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.widthAnchor.constraint(equalToConstant: 10).isActive = true
-        imageView.heightAnchor.constraint(equalToConstant: 10).isActive = true
+        imageView.widthAnchor.constraint(equalToConstant: 12).isActive = true
         
         return stackview
     }()
@@ -125,6 +124,7 @@ public class TimeView: UIStackView {
     
     private func configureUI() {
         checkTraitCollection()
+        
         distribution = .fill
         spacing = 12.0
         layoutMargins = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
@@ -134,7 +134,6 @@ public class TimeView: UIStackView {
         timeStack.alignment = .center
         
         addArrangedSubviews([timeStack, nowButtonStack])
-        
         
         timeStack.translatesAutoresizingMaskIntoConstraints = false
         timeStack.heightAnchor.constraint(equalToConstant: 32).isActive = true

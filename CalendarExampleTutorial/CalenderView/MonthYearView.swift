@@ -8,13 +8,12 @@
 import UIKit
 
 public protocol ChangeMonthYearViewDelegate: AnyObject {
-    func nextMonth()
-    func previousMonth()
+    func nextMonth(_ nextDate: Date)
+    func previousMonth(_ previousDate: Date)
     func changeMonth()
 }
 
-
-public class ChangeMonthYearView: UIStackView {
+public class MonthYearView: UIStackView {
     
     private let changeMonthYearButton: UIButton = {
         let button = UIButton()
@@ -49,7 +48,16 @@ public class ChangeMonthYearView: UIStackView {
     
     public weak var delegate: ChangeMonthYearViewDelegate?
     
-    public init() {
+    private let minDate: Date
+    private let maxDate: Date
+    private var currentDate: Date
+    
+    public init(minDate: Date,
+                maxDate: Date,
+                currentDate: Date) {
+        self.minDate = minDate //CalendarHelper().firstOfMonth(date: minDate)
+        self.maxDate = maxDate
+        self.currentDate = currentDate
         super.init(frame: .zero)
         configureUI()
     }
@@ -69,18 +77,56 @@ public class ChangeMonthYearView: UIStackView {
     }
     
     @objc private func changeMonthYearAction(_ sender: UIButton) {
+        sender.isSelected.toggle()
+        UIView.animate(withDuration: 0.2) {
+            sender.imageView?.transform = CGAffineTransform(rotationAngle: sender.isSelected ? .pi/2 : 0)
+        }
         delegate?.changeMonth()
     }
     
-    func updateMonthYear(_ text: String) {
+    func updateMonthYear(_ date: Date) {
+        currentDate = date
+        let text = CalendarHelper().monthString(date: date) + " " + CalendarHelper().yearString(date: date)
         changeMonthYearButton.setTitle(text, for: .normal)
+        disableButton()
+    }
+    
+    func disableButton() {
+        if Calendar.current.compare(maxDate, to: currentDate, toGranularity: .month) == .orderedSame {
+            nextMonthButton.isEnabled = false
+        } else {
+            nextMonthButton.isEnabled = true
+        }
+        
+        if Calendar.current.compare(minDate, to: currentDate, toGranularity: .month) == .orderedSame {
+            previousMonthButton.isEnabled = false
+        } else {
+            previousMonthButton.isEnabled = true
+        }
     }
     
     @objc func nextMonth(_ sender: UIButton) {
-        delegate?.nextMonth()
+        sender.isEnabled = false
+        let nextMonth = CalendarHelper().plusMonth(date: currentDate)
+        delegate?.nextMonth(nextMonth)
     }
     
     @objc func previousMonth(_ sender: UIButton) {
-        delegate?.previousMonth()
+        sender.isEnabled = false
+        let previousMonth = CalendarHelper().minusMonth(date: currentDate)
+        delegate?.previousMonth(previousMonth)
+    }
+}
+
+import SwiftUI
+
+struct MonthYearView_Previews: PreviewProvider {
+    static var previews: some View {
+        ViewPreview {
+            let currentDate = Date()
+            let fromDate = Calendar.current.date(byAdding: .month, value: -1, to: currentDate)
+            let maxDate = Calendar.current.date(byAdding: .month, value: 1, to: currentDate)
+            return MonthYearView(minDate: fromDate!, maxDate: maxDate!, currentDate: currentDate)
+        }
     }
 }

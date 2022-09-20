@@ -1,13 +1,85 @@
 import UIKit
 
+public protocol DateSelection {
+    func changeMonth(date: Date)
+    func selectedDateContains(_ dateComponents: DateComponents) -> Bool
+}
+
+open class SingleSelectionDate: DateSelection {
+    
+    weak private var delegate: SingleSelectionDateDelegate?
+    private var selectedDate: DateComponents?
+    
+    public init(delegate: SingleSelectionDateDelegate?) {
+        self.delegate = delegate
+    }
+    
+    open func setSelected(_ selectedDate: DateComponents?) {
+        self.selectedDate = selectedDate
+        delegate?.dateSelection(self, dateComponents: selectedDate)
+    }
+    
+    open func changeMonth(date: Date) {
+        delegate?.changeMonth(date: date)
+    }
+    
+    open func selectedDateContains(_ dateComponents: DateComponents) -> Bool {
+        return selectedDate == dateComponents
+    }
+}
+
+public protocol SingleSelectionDateDelegate: AnyObject {
+    
+    func dateSelection(_ selection: SingleSelectionDate, dateComponents: DateComponents?)
+    func changeMonth(date: Date)
+}
+
+
+open class MultiSelectionDate: DateSelection {
+
+    private var selectedDates: [DateComponents]
+    weak private var delegate: MultiSelectionDateDelegate?
+    
+    /// Creates a new multi-date selection with the specified delegate.
+    public init(delegate: MultiSelectionDateDelegate?) {
+        self.delegate = delegate
+        self.selectedDates = []
+    }
+    
+    open func changeMonth(date: Date) {
+        delegate?.changeMonth(date: date)
+    }
+    
+    open func selectedDateContains(_ dateComponents: DateComponents) -> Bool {
+        return selectedDates.contains(where: { $0.day == dateComponents.day && $0.month == dateComponents.month && $0.year == dateComponents.year })
+    }
+    
+    open func setSelectedDates(_ dateComponents: DateComponents) {
+        if  !selectedDateContains(dateComponents) {
+            selectedDates.append(dateComponents)
+        } else {
+            if let index = selectedDates.firstIndex(of: dateComponents) {
+                selectedDates.remove(at: index)
+            }
+        }
+        
+        delegate?.multiDateSelection(self, dateComponents: selectedDates)
+    }
+}
+
+public protocol MultiSelectionDateDelegate: AnyObject {
+    func changeMonth(date: Date)
+    func multiDateSelection(_ selection: MultiSelectionDate, dateComponents: [DateComponents])
+}
+
 class ViewController: UIViewController {
     
-    private let minDate: Date = Date()
-    private let maxDate: Date = Date()
-    private let selectedDate: Date = Date()
+    let minDate = Calendar.current.date(byAdding: .month, value: -30, to: Date())!.date(in: 7200)
+    let maxDate = Calendar.current.date(byAdding: .day, value: 0, to: Date())!.date(in: 7200)
+    let currentDate = Calendar.current.date(byAdding: .day, value: -2, to: Date())!.date(in: 7200)
     
-    private lazy var changeMonthView: ChangeMonthYearView = {
-        let topView = ChangeMonthYearView()
+    private lazy var changeMonthView: MonthYearView = {
+        let topView = MonthYearView(minDate: minDate, maxDate: maxDate, currentDate: currentDate)
         topView.delegate = self
         topView.axis = .horizontal
         topView.distribution = .fill
@@ -19,20 +91,25 @@ class ViewController: UIViewController {
         return timeView
     }()
     
-    private let buttonView = ButtonView(currentDate: Date())
-    private lazy var calenderViewController: PageViewCotnroller = {
-        return PageViewCotnroller(Date(), delegate: self)
+    private let buttonView = ButtonView()
+    
+    private lazy var calenderViewController: CalendarPageViewCotnroller = {
+//        let multiDateSelection = MultiSelectionDate(delegate: self)
+        let singleDateSelection = SingleSelectionDate(delegate: self)
+        return CalendarPageViewCotnroller(currentDate: currentDate, availabelRanges: .init(start: minDate, end: maxDate), dateSelection: singleDateSelection)
     }()
     
-    private let timePickerView: TimePickerView = {
-        var calendar = Calendar.current
-        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
-        let minDate = calendar.date(byAdding: .day, value: -5, to: Date())!.date(in: 7200)
-        let maxDate = calendar.date(byAdding: .day, value: 0, to: Date())!.date(in: 7200)
-        let currentDate = calendar.date(byAdding: .day, value: 0, to: Date())!.date(in: 7200)
-        let timePickerView = TimePickerView(minDateTime: minDate, maxDateTime: maxDate, currentDateTime: currentDate, timeFormate: .hour12)
+    private lazy var timePickerView: TimePickerView = {
+        let timePickerView = TimePickerView(minDate: minDate, maxDate: maxDate, currentDate: currentDate, timeFormate: .hour24)
         timePickerView.isHidden = true
         return timePickerView
+    }()
+    
+    private lazy var monthPicker: MonthPickerView = {
+        let picker = MonthPickerView(availabelRange: .init(start: minDate, end: maxDate), currentDate: currentDate)
+        picker.delegate = self
+        picker.isHidden = true
+        return picker
     }()
     
     private lazy var middleView: UIStackView = {
@@ -57,7 +134,7 @@ class ViewController: UIViewController {
     
     func addChildView() {
         addChild(calenderViewController)
-        middleView.addArrangedSubviews([calenderViewController.view, timePickerView])
+        middleView.addArrangedSubviews([calenderViewController.view, timePickerView, monthPicker])
         calenderViewController.didMove(toParent: self)
     }
     
@@ -132,6 +209,69 @@ class ViewController: UIViewController {
     }
 }
 
+extension ViewController: MultiSelectionDateDelegate {
+    
+    func multiDateSelection(_ selection: MultiSelectionDate, dateComponents: [DateComponents]) {
+        print(dateComponents)
+    }
+    
+    public func changeMonth(date: Date) {
+        changeMonthView.updateMonthYear(date)
+        monthPicker.updateMonth(date)
+    }
+}
+
+extension ViewController: SingleSelectionDateDelegate {
+    func dateSelection(_ selection: SingleSelectionDate, dateComponents: DateComponents?) {
+        print(dateComponents)
+    }
+}
+
+extension ViewController: ChangeMonthYearViewDelegate {
+    
+    public func nextMonth(_ nextDate: Date) {
+        calenderViewController.nextMonth()
+    }
+    
+    public func previousMonth(_ previousDate: Date) {
+        calenderViewController.previousMonth()
+    }
+    
+    public func changeMonth() {
+        monthPicker.isHidden.toggle()
+        timePickerView.isHidden = true
+        if !monthPicker.isHidden {
+            removeViewFromParent()
+        } else {
+            addChildView()
+        }
+    }
+}
+
+extension ViewController: TimeViewDelegate {
+    func timeAction() {
+        timePickerView.isHidden.toggle()
+        monthPicker.isHidden = true
+        if !timePickerView.isHidden {
+            removeViewFromParent()
+        } else {
+            addChildView()
+        }
+    }
+}
+
+extension ViewController: MonthPickerDelegate {
+    func updateMonth(_ date: Date) {
+        changeMonthView.updateMonthYear(date)
+        calenderViewController.updateSelectedDate(date)
+    }
+}
+
+
+
+
+
+
 extension UIStackView {
     
     func removeFully(view: UIView) {
@@ -146,42 +286,6 @@ extension UIStackView {
     }
     
 }
-
-extension ViewController : CalenderViewDelegate {
-    public func changeMonth(monthYear: String) {
-        changeMonthView.updateMonthYear(monthYear)
-    }
-    
-    public func selectedDates(dateComponents: [DateComponents]) {
-        print(dateComponents)
-    }
-}
-
-extension ViewController: ChangeMonthYearViewDelegate {
-    public func nextMonth() {
-        calenderViewController.nextMonth()
-    }
-    
-    public func previousMonth() {
-        calenderViewController.previousMonth()
-    }
-    
-    public func changeMonth() {
-        print("Change View")
-    }
-}
-
-extension ViewController: TimeViewDelegate {
-    func timeAction() {
-        timePickerView.isHidden.toggle()
-        if !timePickerView.isHidden {
-            removeViewFromParent()
-        } else {
-            addChildView()
-        }
-    }
-}
-
 
 
 import UIKit

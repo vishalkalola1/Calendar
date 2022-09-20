@@ -7,9 +7,12 @@
 
 import UIKit
 
+public protocol ButtonViewDelegate: AnyObject {
+    func applyAction(_ sender: UIButton)
+    func cancelAction(_ sender: UIButton)
+}
+
 public class ButtonView: UIView {
-    
-    private let currentDate: Date
     
     private let applyButton: UIButton = {
         let button = UIButton()
@@ -25,20 +28,21 @@ public class ButtonView: UIView {
         return button
     }()
     
-    let hLine: UIView = {
+    public weak var delegate: ButtonViewDelegate?
+    
+    private let hLine: UIView = {
         let view = UIView()
         view.backgroundColor = .lightGray
         return view
     }()
     
-    let vLine: UIView = {
+    private let vLine: UIView = {
         let view = UIView()
         view.backgroundColor = .lightGray
         return view
     }()
     
-    public init(currentDate: Date) {
-        self.currentDate = currentDate
+    public init() {
         super.init(frame: .zero)
         configureUI()
     }
@@ -76,10 +80,10 @@ public class ButtonView: UIView {
     }
     
     @objc private func applyAction(_ sender: UIButton) {
-        print("Apply Click")
+        delegate?.applyAction(sender)
     }
     
     @objc private func cancelAction(_ sender: UIButton) {
-        print("Cancel Click")
+        delegate?.cancelAction(sender)
     }
 }

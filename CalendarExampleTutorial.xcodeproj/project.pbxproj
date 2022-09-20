@@ -15,12 +15,13 @@
 		2E49EBB425B02886004453F8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2E49EBB325B02886004453F8 /* Assets.xcassets */; };
 		2E49EBB725B02886004453F8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2E49EBB525B02886004453F8 /* LaunchScreen.storyboard */; };
 		2E49EBC425B049F9004453F8 /* CalendarCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E49EBC325B049F9004453F8 /* CalendarCell.swift */; };
+		C98C84F128D9B6D70023FB8A /* MonthPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C98C84F028D9B6D70023FB8A /* MonthPickerView.swift */; };
 		C9A8CBF828D8C1E50000984A /* TimePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9A8CBF728D8C1E50000984A /* TimePickerView.swift */; };
-		C9B5B46928D2171400522425 /* VMSDateTimePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9B5B46828D2171400522425 /* VMSDateTimePicker.swift */; };
+		C9B5B46928D2171400522425 /* CalendarPageViewCotnroller.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9B5B46828D2171400522425 /* CalendarPageViewCotnroller.swift */; };
 		C9DCD04128D35D22007B2E0F /* ButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9DCD04028D35D22007B2E0F /* ButtonView.swift */; };
 		C9DCD04328D35D54007B2E0F /* TimeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9DCD04228D35D54007B2E0F /* TimeView.swift */; };
-		C9DCD04528D35DA9007B2E0F /* ChangeMonthYearView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9DCD04428D35DA9007B2E0F /* ChangeMonthYearView.swift */; };
-		C9DCD04728D35DDC007B2E0F /* CalenderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9DCD04628D35DDC007B2E0F /* CalenderView.swift */; };
+		C9DCD04528D35DA9007B2E0F /* MonthYearView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9DCD04428D35DA9007B2E0F /* MonthYearView.swift */; };
+		C9DCD04728D35DDC007B2E0F /* DatePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9DCD04628D35DDC007B2E0F /* DatePickerView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,12 +35,13 @@
 		2E49EBB625B02886004453F8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		2E49EBB825B02886004453F8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2E49EBC325B049F9004453F8 /* CalendarCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarCell.swift; sourceTree = "<group>"; };
+		C98C84F028D9B6D70023FB8A /* MonthPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthPickerView.swift; sourceTree = "<group>"; };
 		C9A8CBF728D8C1E50000984A /* TimePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimePickerView.swift; sourceTree = "<group>"; };
-		C9B5B46828D2171400522425 /* VMSDateTimePicker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VMSDateTimePicker.swift; sourceTree = "<group>"; };
+		C9B5B46828D2171400522425 /* CalendarPageViewCotnroller.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalendarPageViewCotnroller.swift; sourceTree = "<group>"; };
 		C9DCD04028D35D22007B2E0F /* ButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonView.swift; sourceTree = "<group>"; };
 		C9DCD04228D35D54007B2E0F /* TimeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeView.swift; sourceTree = "<group>"; };
-		C9DCD04428D35DA9007B2E0F /* ChangeMonthYearView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangeMonthYearView.swift; sourceTree = "<group>"; };
-		C9DCD04628D35DDC007B2E0F /* CalenderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalenderView.swift; sourceTree = "<group>"; };
+		C9DCD04428D35DA9007B2E0F /* MonthYearView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthYearView.swift; sourceTree = "<group>"; };
+		C9DCD04628D35DDC007B2E0F /* DatePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatePickerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,12 +91,13 @@
 		C9B5B46728D2171400522425 /* CalenderView */ = {
 			isa = PBXGroup;
 			children = (
-				C9B5B46828D2171400522425 /* VMSDateTimePicker.swift */,
+				C9B5B46828D2171400522425 /* CalendarPageViewCotnroller.swift */,
 				C9DCD04028D35D22007B2E0F /* ButtonView.swift */,
 				C9DCD04228D35D54007B2E0F /* TimeView.swift */,
-				C9DCD04428D35DA9007B2E0F /* ChangeMonthYearView.swift */,
-				C9DCD04628D35DDC007B2E0F /* CalenderView.swift */,
+				C9DCD04428D35DA9007B2E0F /* MonthYearView.swift */,
+				C9DCD04628D35DDC007B2E0F /* DatePickerView.swift */,
 				C9A8CBF728D8C1E50000984A /* TimePickerView.swift */,
+				C98C84F028D9B6D70023FB8A /* MonthPickerView.swift */,
 			);
 			path = CalenderView;
 			sourceTree = "<group>";
@@ -170,14 +173,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				2E09862025B054A800319099 /* CalendarHelper.swift in Sources */,
-				C9B5B46928D2171400522425 /* VMSDateTimePicker.swift in Sources */,
+				C9B5B46928D2171400522425 /* CalendarPageViewCotnroller.swift in Sources */,
 				2E49EBAF25B02883004453F8 /* ViewController.swift in Sources */,
 				C9DCD04328D35D54007B2E0F /* TimeView.swift in Sources */,
-				C9DCD04528D35DA9007B2E0F /* ChangeMonthYearView.swift in Sources */,
+				C9DCD04528D35DA9007B2E0F /* MonthYearView.swift in Sources */,
 				2E49EBAB25B02883004453F8 /* AppDelegate.swift in Sources */,
 				2E49EBAD25B02883004453F8 /* SceneDelegate.swift in Sources */,
+				C98C84F128D9B6D70023FB8A /* MonthPickerView.swift in Sources */,
 				2E49EBC425B049F9004453F8 /* CalendarCell.swift in Sources */,
-				C9DCD04728D35DDC007B2E0F /* CalenderView.swift in Sources */,
+				C9DCD04728D35DDC007B2E0F /* DatePickerView.swift in Sources */,
 				C9A8CBF828D8C1E50000984A /* TimePickerView.swift in Sources */,
 				C9DCD04128D35D22007B2E0F /* ButtonView.swift in Sources */,
 			);

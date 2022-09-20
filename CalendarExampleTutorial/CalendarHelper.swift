@@ -22,10 +22,24 @@ class CalendarHelper
         return dateFormatter.string(from: date)
     }
     
+    func monthShortString(date: Date) -> String
+    {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "LLL"
+        return dateFormatter.string(from: date)
+    }
+    
     func yearString(date: Date) -> String
     {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy"
+        return dateFormatter.string(from: date)
+    }
+    
+    func dayString(date: Date) -> String
+    {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd"
         return dateFormatter.string(from: date)
     }
     
@@ -75,10 +89,30 @@ class CalendarHelper
         return calendar.dateComponents([.month], from: minDate, to: maxdate).month ?? 0
     }
     
+    func getDateFromComponents(_ components: DateComponents) -> Date {
+        calendar.date(from: components)!
+    }
+    
     func getDays() -> [String] {
         var weekdaySymbols = calendar.veryShortWeekdaySymbols
         let firstDay = weekdaySymbols.remove(at: weekdaySymbols.startIndex)
         weekdaySymbols.append(firstDay)
         return weekdaySymbols
+    }
+    
+    func getMonthsComponents(_ day: Int, year: Int) -> [DateComponents] {
+        return (1...12).map({ create(day: day, month: $0, year: year) })
+    }
+    
+    func getMonths() -> [String] {
+        calendar.shortMonthSymbols
+    }
+    
+    func isDateInRange(_ date: Date, availabelRange: DateInterval, toGranularity: Calendar.Component) -> Bool {
+        let minbool = calendar.compare(date, to: availabelRange.start, toGranularity: toGranularity) == .orderedDescending
+                    || calendar.compare(date, to: availabelRange.start, toGranularity: toGranularity) == .orderedSame
+        let maxbool = calendar.compare(date, to: availabelRange.end, toGranularity: toGranularity) == .orderedAscending
+                    || calendar.compare(date, to: availabelRange.end, toGranularity: toGranularity) == .orderedSame
+        return maxbool && minbool
     }
 }

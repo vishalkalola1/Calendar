@@ -16,14 +16,18 @@ extension UIStackView {
     }
 }
 
-public class PageViewCotnroller: UIPageViewController {
+public class CalendarPageViewCotnroller: UIPageViewController {
 
     private var selectedDate: Date
-    private var calendarDelegate: CalenderViewDelegate
+    private var currentDate: Date
+    private var availabelRanges: DateInterval
+    private var dateSelection: DateSelection
     
-    init(_ selectedDate: Date, delegate: CalenderViewDelegate) {
-        self.selectedDate = selectedDate
-        self.calendarDelegate = delegate
+    init(currentDate: Date, availabelRanges: DateInterval,  dateSelection: DateSelection) {
+        self.availabelRanges = availabelRanges
+        self.currentDate = currentDate
+        self.selectedDate = currentDate
+        self.dateSelection = dateSelection
         super.init(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
     }
     
@@ -47,13 +51,17 @@ public class PageViewCotnroller: UIPageViewController {
     }
     
     private func getViewController(_ date: Date) -> UIViewController {
-        let calenderCollectionController = CalenderCollectionController(date)
-        calenderCollectionController.delegate = calendarDelegate
+        let calenderCollectionController = DatePickerView(date, availabelRanges: availabelRanges, dateSelection: dateSelection)
         return calenderCollectionController
     }
     
-    private var currentViewController: CalenderCollectionController {
-        return viewControllers!.first! as! CalenderCollectionController
+    private var currentViewController: DatePickerView {
+        return viewControllers!.first! as! DatePickerView
+    }
+    
+    public func updateSelectedDate(_ date: Date) {
+        currentViewController.selectedMonth = date
+        currentViewController.collectionView.reloadData()
     }
     
     public func nextMonth() {
@@ -64,26 +72,21 @@ public class PageViewCotnroller: UIPageViewController {
         setViewController(currentViewController.previousMonthDate, direction: .reverse)
     }
     
-    public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        super.viewWillTransition(to: size, with: coordinator)
-        coordinator.animate { _ in
-            self.currentViewController.invalidLayout()
-        }
+    private func isEnabled(_ date: Date) -> Bool {
+        let minbool = Calendar.current.compare(date, to: availabelRanges.start, toGranularity: .month) == .orderedDescending || Calendar.current.compare(date, to: availabelRanges.start, toGranularity: .month) == .orderedSame
+        let maxbool = Calendar.current.compare(date, to: availabelRanges.end, toGranularity: .month) == .orderedAscending || Calendar.current.compare(date, to: availabelRanges.end, toGranularity: .month) == .orderedSame
+        return maxbool && minbool
     }
 }
 
-extension PageViewCotnroller: UIPageViewControllerDelegate, UIPageViewControllerDataSource {
+extension CalendarPageViewCotnroller: UIPageViewControllerDelegate, UIPageViewControllerDataSource {
     public func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
-        print("current", (viewController as? CalenderCollectionController)?.selectedMonth)
-        print("next", (viewController as? CalenderCollectionController)?.nextMonthDate)
-        guard let date = (viewController as? CalenderCollectionController)?.nextMonthDate else { return nil }
+        guard let date = (viewController as? DatePickerView)?.nextMonthDate, isEnabled(date) else { return nil }
         return getViewController(date)
     }
     
     public func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
-        print("current", (viewController as? CalenderCollectionController)?.selectedMonth)
-        print("previous", (viewController as? CalenderCollectionController)?.previousMonthDate)
-        guard let date = (viewController as? CalenderCollectionController)?.previousMonthDate else { return nil }
+        guard let date = (viewController as? DatePickerView)?.previousMonthDate, isEnabled(date) else { return nil }
         return getViewController(date)
     }
 }

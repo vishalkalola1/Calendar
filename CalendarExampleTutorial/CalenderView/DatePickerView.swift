@@ -7,11 +7,6 @@
 
 import UIKit
 
-public protocol CalenderViewDelegate: AnyObject {
-    func changeMonth(monthYear: String)
-    func selectedDates(dateComponents: [DateComponents])
-}
-
 fileprivate class WeekHeader: UICollectionReusableView {
     
     private let stackView: UIStackView = {
@@ -54,23 +49,22 @@ fileprivate class WeekHeader: UICollectionReusableView {
     }
 }
 
+fileprivate struct VMSDate {
+    let dateComponents: DateComponents
+    let isEnable: Bool
+}
 
-public class CalenderCollectionController: UICollectionViewController {
-    
-    struct VMSDate {
-        let dateComponents: DateComponents
-        let isEnable: Bool
-    }
+public class DatePickerView: UICollectionViewController {
     
     public var selectedMonth: Date
     private var totalDates = [VMSDate]()
-    private var selectedDates = [DateComponents]()
+    private var availabelRanges: DateInterval
+    private var dateSelection: DateSelection
     
-    public weak var delegate: CalenderViewDelegate?
-    
-    public init(_ selectedMonth: Date) {
-        
+    public init(_ selectedMonth: Date, availabelRanges: DateInterval, dateSelection: DateSelection) {
         self.selectedMonth = selectedMonth
+        self.availabelRanges = availabelRanges
+        self.dateSelection = dateSelection
         
         let flowLayout = UICollectionViewFlowLayout()
         flowLayout.minimumLineSpacing = 0
@@ -78,6 +72,7 @@ public class CalenderCollectionController: UICollectionViewController {
         flowLayout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
         flowLayout.scrollDirection = .vertical
         flowLayout.itemSize = CGSize(width: 1, height: 1)
+        
         super.init(collectionViewLayout: flowLayout)
     }
     
@@ -128,12 +123,12 @@ public class CalenderCollectionController: UICollectionViewController {
                 totalDates.append(vmsDate)
             } else {
                 let currentMonthComponents = CalendarHelper().create(day: count - startingSpaces, month: currentMonthAndYear.month, year: currentMonthAndYear.year)
-                let vmsDate = VMSDate(dateComponents: currentMonthComponents, isEnable: true)
+                let vmsDate = VMSDate(dateComponents: currentMonthComponents, isEnable: CalendarHelper().isDateInRange(CalendarHelper().getDateFromComponents(currentMonthComponents), availabelRange: availabelRanges, toGranularity: .day))
                 totalDates.append(vmsDate)
             }
             count += 1
         }
-        delegate?.changeMonth(monthYear: CalendarHelper().monthString(date: selectedMonth) + " " + CalendarHelper().yearString(date: selectedMonth))
+        dateSelection.changeMonth(date: selectedMonth)
         collectionView.reloadData()
     }
 
@@ -145,12 +140,19 @@ public class CalenderCollectionController: UICollectionViewController {
         return CalendarHelper().minusMonth(date: selectedMonth)
     }
     
+    public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        coordinator.animate { _ in
+            self.invalidLayout()
+        }
+    }
+    
     func invalidLayout() {
         collectionView.collectionViewLayout.invalidateLayout()
     }
 }
 
-extension CalenderCollectionController: UICollectionViewDelegateFlowLayout {
+extension DatePickerView: UICollectionViewDelegateFlowLayout {
     
     public override func numberOfSections(in collectionView: UICollectionView) -> Int {
         return 1
@@ -164,7 +166,7 @@ extension CalenderCollectionController: UICollectionViewDelegateFlowLayout {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "calCell", for: indexPath) as! CalendarCell
         let vmsdate = totalDates[indexPath.item]
         
-        cell.configCell(vmsdate.dateComponents.day!, isEnabled: vmsdate.isEnable, isSelected: vmsdate.isEnable && selectedDateContains(vmsdate.dateComponents))
+        cell.configCell(vmsdate.dateComponents.day!, isEnabled: vmsdate.isEnable, isSelected: vmsdate.isEnable && dateSelection.selectedDateContains(vmsdate.dateComponents))
         
         return cell
     }
@@ -192,18 +194,16 @@ extension CalenderCollectionController: UICollectionViewDelegateFlowLayout {
         if vmsdate.isEnable {
             let monthYear = CalendarHelper().getYearAndMonth(date: selectedMonth)
             let selectedDateComponents = CalendarHelper().create(day: vmsdate.dateComponents.day!, month: monthYear.month, year: monthYear.year)
-            if  !selectedDateContains(selectedDateComponents) {
-                selectedDates.append(selectedDateComponents)
-            } else {
-                if let index = selectedDates.firstIndex(of: selectedDateComponents) {
-                    selectedDates.remove(at: index)
-                }
+            
+            if let multiSelection = dateSelection as? MultiSelectionDate {
+                multiSelection.setSelectedDates(selectedDateComponents)
             }
+            
+            if let singleSelection = dateSelection as? SingleSelectionDate {
+                singleSelection.setSelected(selectedDateComponents)
+            }
+            
             collectionView.reloadData()
         }
-    }
-    
-    func selectedDateContains(_ dateComponents: DateComponents) -> Bool {
-        return selectedDates.contains(where: { $0.day == dateComponents.day && $0.month == dateComponents.month && $0.year == dateComponents.year })
     }
 }

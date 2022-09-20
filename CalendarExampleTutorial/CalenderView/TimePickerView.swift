@@ -125,8 +125,8 @@ public class TimePickerView: UIStackView {
     
     public weak var delegate: ChangeMonthYearViewDelegate?
     
-    public init(minDateTime: Date, maxDateTime: Date, currentDateTime: Date, timeFormate: TimeFormate = .hour24) {
-        self.viewModel = DateTimePickerViewModel(minDateTime: minDateTime, maxDateTime: maxDateTime, currentDateTime: currentDateTime, timeFormate: timeFormate)
+    public init(minDate: Date, maxDate: Date, currentDate: Date, timeFormate: TimeFormate = .hour24) {
+        self.viewModel = DateTimePickerViewModel(minDateTime: minDate, maxDateTime: maxDate, currentDateTime: currentDate, timeFormate: timeFormate)
         super.init(frame: .zero)
         configureUI()
     }
@@ -245,7 +245,7 @@ struct PreviewView_Previews: PreviewProvider {
         ViewPreview {
             let fromDate = Calendar.current.date(byAdding: .day, value: -5, to: Date())
             let nowDate = Calendar.current.date(byAdding: .day, value: 0, to: Date())
-            return TimePickerView(minDateTime: fromDate!, maxDateTime: Date(), currentDateTime: nowDate!, timeFormate: .hour24)
+            return TimePickerView(minDate: fromDate!, maxDate: Date(), currentDate: nowDate!, timeFormate: .hour24)
         }
     }
 }
