@@ -56,7 +56,7 @@ fileprivate struct VMSDate {
 
 public class DatePickerView: UICollectionViewController {
     
-    public var selectedMonth: Date
+    private var selectedMonth: Date
     private var totalDates = [VMSDate]()
     private var availabelRanges: DateInterval
     private var dateSelection: DateSelection
@@ -103,27 +103,28 @@ public class DatePickerView: UICollectionViewController {
         
         let previousMonthTotalDays = CalendarHelper().daysInMonth(date: previousMonthSelectedDate)
         let currentMonthTotalDays = CalendarHelper().daysInMonth(date: selectedMonth)
+        
         let startingSpaces = CalendarHelper().weekDay(date: selectedMonth)
         
-        let previousMonthAndYear = CalendarHelper().getYearAndMonth(date: previousMonthSelectedDate)
-        let currentMonthAndYear = CalendarHelper().getYearAndMonth(date: selectedMonth)
-        let nextMonthAndYear = CalendarHelper().getYearAndMonth(date: nextMonthSelectedDate)
+        var previousMonthAndYear = CalendarHelper().getDateComponent(date: previousMonthSelectedDate)
+        var currentMonthAndYear = CalendarHelper().getDateComponent(date: selectedMonth)
+        var nextMonthAndYear = CalendarHelper().getDateComponent(date: nextMonthSelectedDate)
         
         var count: Int = 1
         
         while(count <= 42)
         {
             if(count <= startingSpaces) {
-                let previousMonthComponents = CalendarHelper().create(day: previousMonthTotalDays - (startingSpaces - count), month: previousMonthAndYear.month, year: previousMonthAndYear.year)
-                let vmsDate = VMSDate(dateComponents: previousMonthComponents, isEnable: false)
+                previousMonthAndYear.day = previousMonthTotalDays - (startingSpaces - count)
+                let vmsDate = VMSDate(dateComponents: previousMonthAndYear, isEnable: false)
                 totalDates.append(vmsDate)
             } else if count - startingSpaces > currentMonthTotalDays {
-                let nextMonthComponents = CalendarHelper().create(day: (count % currentMonthTotalDays) - startingSpaces, month: nextMonthAndYear.month, year: nextMonthAndYear.year)
-                let vmsDate = VMSDate(dateComponents: nextMonthComponents, isEnable: false)
+                nextMonthAndYear.day = (count % currentMonthTotalDays) - startingSpaces
+                let vmsDate = VMSDate(dateComponents: nextMonthAndYear, isEnable: false)
                 totalDates.append(vmsDate)
             } else {
-                let currentMonthComponents = CalendarHelper().create(day: count - startingSpaces, month: currentMonthAndYear.month, year: currentMonthAndYear.year)
-                let vmsDate = VMSDate(dateComponents: currentMonthComponents, isEnable: CalendarHelper().isDateInRange(CalendarHelper().getDateFromComponents(currentMonthComponents), availabelRange: availabelRanges, toGranularity: .day))
+                currentMonthAndYear.day = count - startingSpaces
+                let vmsDate = VMSDate(dateComponents: currentMonthAndYear, isEnable: CalendarHelper().isDateInRange(CalendarHelper().getDateFromComponents(currentMonthAndYear), availabelRange: availabelRanges, toGranularity: .day))
                 totalDates.append(vmsDate)
             }
             count += 1
@@ -138,6 +139,11 @@ public class DatePickerView: UICollectionViewController {
     
     var previousMonthDate: Date {
         return CalendarHelper().minusMonth(date: selectedMonth)
+    }
+    
+    func updateSelectedMonth(_ month: Date) {
+        selectedMonth = month
+        collectionView.reloadData()
     }
     
     public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -166,7 +172,9 @@ extension DatePickerView: UICollectionViewDelegateFlowLayout {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "calCell", for: indexPath) as! CalendarCell
         let vmsdate = totalDates[indexPath.item]
         
-        cell.configCell(vmsdate.dateComponents.day!, isEnabled: vmsdate.isEnable, isSelected: vmsdate.isEnable && dateSelection.selectedDateContains(vmsdate.dateComponents))
+        cell.configCell(vmsdate.dateComponents,
+                        isEnabled: vmsdate.isEnable,
+                        isSelected: vmsdate.isEnable && dateSelection.selectedDateContains(vmsdate.dateComponents))
         
         return cell
     }
@@ -192,15 +200,13 @@ extension DatePickerView: UICollectionViewDelegateFlowLayout {
     public override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let vmsdate = totalDates[indexPath.item]
         if vmsdate.isEnable {
-            let monthYear = CalendarHelper().getYearAndMonth(date: selectedMonth)
-            let selectedDateComponents = CalendarHelper().create(day: vmsdate.dateComponents.day!, month: monthYear.month, year: monthYear.year)
             
             if let multiSelection = dateSelection as? MultiSelectionDate {
-                multiSelection.setSelectedDates(selectedDateComponents)
+                multiSelection.setSelectedDates(vmsdate.dateComponents)
             }
             
             if let singleSelection = dateSelection as? SingleSelectionDate {
-                singleSelection.setSelected(selectedDateComponents)
+                singleSelection.setSelected(vmsdate.dateComponents)
             }
             
             collectionView.reloadData()

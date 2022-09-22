@@ -107,22 +107,34 @@ public class TimeView: UIStackView {
     }()
     
     public weak var delegate: TimeViewDelegate?
+    private var currentDate: Date
     
-    public init(delegate: TimeViewDelegate) {
+    public init(delegate: TimeViewDelegate, currentDate: Date) {
+        self.currentDate = currentDate
         self.delegate = delegate
         super.init(frame: .zero)
         configureUI()
+        updateTime(currentDate)
     }
     
     required init(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    public func updateTime(_ date: Date, timeFormate: TimeFormate) {
-        let formate = timeFormate == .hour12 ? Date.timePreviewAMPMStyleFormatter() : Date.timePreviewStyleFormatter()
-        timeButton.setTitle(formate.string(from: date), for: .normal)
+    public func updateTime(_ date: Date) {
+        self.currentDate = date
+        setTime()
     }
     
+    public func getCurrentTime() -> DateComponents {
+        return CalendarHelper().getHourMinuteAndSecond(currentDate)
+    }
+    
+    private func setTime() {
+        let formate = Date.timePreviewStyleFormatter()
+        let stringCurrentDate = formate.string(from: self.currentDate)
+        timeButton.setTitle(stringCurrentDate, for: .normal)
+    }
     
     private func configureUI() {
         checkTraitCollection()

@@ -165,7 +165,8 @@ extension MonthPickerView: UICollectionViewDelegateFlowLayout, UICollectionViewD
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let vmsdate = totalMonths[indexPath.item]
         if vmsdate.isEnable {
-            selectedMonth = CalendarHelper().getDateFromComponents(vmsdate.dateComponents)
+            let selectedMonth = CalendarHelper().getDateFromComponents(vmsdate.dateComponents)
+            self.selectedMonth = selectedMonth
             delegate?.updateMonth(selectedMonth)
             collectionView.reloadData()
         }

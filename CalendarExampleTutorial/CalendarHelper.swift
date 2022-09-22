@@ -5,6 +5,10 @@ class CalendarHelper
 {
     private var calendar = Calendar.current
     
+    func getDate(_ component: Calendar.Component, value: Int, date: Date) -> Date {
+        return calendar.date(byAdding: component, value:value, to: date)!
+    }
+    
     func plusMonth(date: Date) -> Date
     {
         return calendar.date(byAdding: .month, value: 1, to: date)!
@@ -55,19 +59,18 @@ class CalendarHelper
         return components.day!
     }
     
-    func getDateComponent(date: Date) -> DateComponents {
-        let components = calendar.dateComponents([.year, .month], from: date)
+    func getDateComponent(date: Date, components: Set<Calendar.Component> = [.day, .month,.year]) -> DateComponents {
+        let components = calendar.dateComponents(components, from: date)
         return components
     }
     
-    func getYearAndMonth(date: Date) -> (month: Int, year: Int) {
-        let components = getDateComponent(date: date)
-        return (components.month!, components.year!)
+    func getYearAndMonth(date: Date) -> DateComponents {
+        let components = getDateComponent(date: date, components: [.year, .month])
+        return components
     }
     
-    func firstOfMonth(date: Date) -> Date
-    {
-        let components = getDateComponent(date: date)
+    func firstOfMonth(date: Date) -> Date {
+        let components = getYearAndMonth(date: date)
         return calendar.date(from: components)!
     }
     
@@ -120,11 +123,11 @@ class CalendarHelper
         calendar.compare(date, to: to, toGranularity: toGranularity) == .orderedSame
     }
     
-    func getHourMinuteAndSecond(_ date: Date) -> (hour: Int, minute: Int, second: Int) {
-        let hour = calendar.component(.hour, from: date)
-        let minute = calendar.component(.minute, from: date)
-        let second = calendar.component(.second, from: date)
-        
-        return (hour: hour, minute: minute, second: second)
+    func getHourMinuteAndSecond(_ date: Date) -> DateComponents {
+        return calendar.dateComponents([.hour, .minute, .second], from: date)
+    }
+    
+    func isToday(_ dateComponent: DateComponents) -> Bool {
+        calendar.isDateInToday(getDateFromComponents(dateComponent))
     }
 }

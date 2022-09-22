@@ -19,14 +19,12 @@ extension UIStackView {
 public class CalendarPageViewCotnroller: UIPageViewController {
 
     private var selectedDate: Date
-    private var currentDate: Date
     private var availabelRanges: DateInterval
     private var dateSelection: DateSelection
     
-    init(currentDate: Date, availabelRanges: DateInterval,  dateSelection: DateSelection) {
+    init(selectedDate: Date, availabelRanges: DateInterval,  dateSelection: DateSelection) {
         self.availabelRanges = availabelRanges
-        self.currentDate = currentDate
-        self.selectedDate = currentDate
+        self.selectedDate = selectedDate
         self.dateSelection = dateSelection
         super.init(transitionStyle: .scroll, navigationOrientation: .horizontal, options: nil)
     }
@@ -59,9 +57,8 @@ public class CalendarPageViewCotnroller: UIPageViewController {
         return viewControllers!.first! as! DatePickerView
     }
     
-    public func updateSelectedDate(_ date: Date) {
-        currentViewController.selectedMonth = date
-        currentViewController.collectionView.reloadData()
+    public func updateSelectedMonth(_ month: Date) {
+        currentViewController.updateSelectedMonth(month)
     }
     
     public func nextMonth() {
@@ -73,9 +70,7 @@ public class CalendarPageViewCotnroller: UIPageViewController {
     }
     
     private func isEnabled(_ date: Date) -> Bool {
-        let minbool = Calendar.current.compare(date, to: availabelRanges.start, toGranularity: .month) == .orderedDescending || Calendar.current.compare(date, to: availabelRanges.start, toGranularity: .month) == .orderedSame
-        let maxbool = Calendar.current.compare(date, to: availabelRanges.end, toGranularity: .month) == .orderedAscending || Calendar.current.compare(date, to: availabelRanges.end, toGranularity: .month) == .orderedSame
-        return maxbool && minbool
+        CalendarHelper().isDateInRange(date, availabelRange: availabelRanges, toGranularity: .month)
     }
 }
 

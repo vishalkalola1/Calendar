@@ -24,7 +24,7 @@ open class SingleSelectionDate: DateSelection {
     }
     
     open func selectedDateContains(_ dateComponents: DateComponents) -> Bool {
-        return selectedDate == dateComponents
+        return CalendarHelper().compare(CalendarHelper().getDateFromComponents(dateComponents), to: CalendarHelper().getDateFromComponents(selectedDate!), toGranularity: .day)
     }
 }
 
@@ -74,12 +74,12 @@ public protocol MultiSelectionDateDelegate: AnyObject {
 
 class ViewController: UIViewController {
     
-    let minDate = Calendar.current.date(byAdding: .month, value: -30, to: Date())!.date(in: 7200)
-    let maxDate = Calendar.current.date(byAdding: .day, value: 0, to: Date())!.date(in: 7200)
-    let currentDate = Calendar.current.date(byAdding: .day, value: -2, to: Date())!.date(in: 7200)
+    let start = CalendarHelper().getDate(.month, value: -2, date: Date())
+    let end = CalendarHelper().getDate(.hour, value: 0, date: Date())
+    let currentDate = CalendarHelper().getDate(.hour, value: 0, date: Date())
     
     private lazy var changeMonthView: MonthYearView = {
-        let topView = MonthYearView(availabelRanges: .init(start: minDate, end: maxDate), currentDate: currentDate)
+        let topView = MonthYearView(availabelRanges: .init(start: start, end: end), currentDate: currentDate)
         topView.delegate = self
         topView.axis = .horizontal
         topView.distribution = .fill
@@ -87,27 +87,28 @@ class ViewController: UIViewController {
     }()
     
     private lazy var timeView: TimeView = {
-        let timeView = TimeView(delegate: self)
+        let timeView = TimeView(delegate: self, currentDate: currentDate)
         return timeView
     }()
     
     private let buttonView = ButtonView()
     
     private lazy var calenderViewController: CalendarPageViewCotnroller = {
-//        let multiDateSelection = MultiSelectionDate(delegate: self)
         let singleDateSelection = SingleSelectionDate(delegate: self)
-        return CalendarPageViewCotnroller(currentDate: currentDate, availabelRanges: .init(start: minDate, end: maxDate), dateSelection: singleDateSelection)
+        singleDateSelection.setSelected(CalendarHelper().getDateComponent(date: currentDate, components: [.year, .month, .day, .hour, .minute, .second]))
+        return CalendarPageViewCotnroller(selectedDate: currentDate, availabelRanges: .init(start: start, end: end), dateSelection: singleDateSelection)
     }()
     
+    /// Todo: change
     private lazy var timePickerView: TimePickerView = {
-        let timePickerView = TimePickerView(minDate: minDate, maxDate: maxDate, currentDate: currentDate, timeFormate: .hour24)
+        let timePickerView = TimePickerView(availabelRanges: .init(start: start, end: end), selectedDate: end)
         timePickerView.delegate = self
         timePickerView.isHidden = true
         return timePickerView
     }()
     
     private lazy var monthPicker: MonthPickerView = {
-        let picker = MonthPickerView(availabelRange: .init(start: minDate, end: maxDate), currentDate: currentDate)
+        let picker = MonthPickerView(availabelRange: .init(start: start, end: end), currentDate: currentDate)
         picker.delegate = self
         picker.isHidden = true
         return picker
@@ -130,6 +131,7 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("Vishal", end, currentDate)
         configureUI()
     }
     
@@ -210,28 +212,33 @@ class ViewController: UIViewController {
     }
 }
 
-extension ViewController: MultiSelectionDateDelegate {
+extension ViewController: SingleSelectionDateDelegate {
+    func dateSelection(_ selection: SingleSelectionDate, dateComponents: DateComponents?) {
+        if let dateComponents = dateComponents {
+            let time = timeView.getCurrentTime()
+            var date = CalendarHelper().getDateFromComponents(dateComponents)
+            date = Calendar.current.date(bySettingHour: time.hour!, minute: time.minute!, second: time.second!, of:  date)!
+            date = checkDateInRange(date)
+            timePickerView.updateDateTime(date)
+            timeView.updateTime(date)
+        }
+    }
     
-    func multiDateSelection(_ selection: MultiSelectionDate, dateComponents: [DateComponents]) {
-        print(dateComponents)
+    func checkDateInRange(_ date: Date) -> Date {
+        if start.compare(date) == .orderedDescending {
+            return start
+        }
+        
+        if date.compare(end) == .orderedDescending {
+            return end
+        }
+        
+        return date
     }
     
     public func changeMonth(date: Date) {
         changeMonthView.updateMonthYear(date)
         monthPicker.updateMonth(date)
-    }
-}
-
-extension ViewController: SingleSelectionDateDelegate {
-    func dateSelection(_ selection: SingleSelectionDate, dateComponents: DateComponents?) {
-        if var dateComponents = dateComponents {
-            let time = CalendarHelper().getHourMinuteAndSecond(maxDate)
-            dateComponents.hour = time.hour
-            dateComponents.minute = time.minute
-            dateComponents.second = time.second
-            let date = CalendarHelper().getDateFromComponents(dateComponents)
-            timePickerView.updateCurrentDate(date)
-        }
     }
 }
 
@@ -271,13 +278,13 @@ extension ViewController: TimeViewDelegate {
 extension ViewController: MonthPickerDelegate {
     func updateMonth(_ date: Date) {
         changeMonthView.updateMonthYear(date)
-        calenderViewController.updateSelectedDate(date)
+        calenderViewController.updateSelectedMonth(date)
     }
 }
 
 extension ViewController: TimePickerViewDelegate {
     func updateTime(date: Date) {
-        timeView.updateTime(date, timeFormate: .hour24)
+        timeView.updateTime(date)
     }
 }
 

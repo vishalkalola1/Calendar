@@ -7,225 +7,323 @@
 
 import UIKit
 
-struct TimeModel {
-    var items: [Int]
-}
-
-class DateTimePickerViewModel {
-    
-    private let minDateTime: Date
-    private let maxDateTime: Date
-    public var currentDateTime: Date
-    public var timeFormate: TimeFormate
-    var timeModel: [TimeModel] = []
-    
-    init(minDateTime: Date,
-         maxDateTime: Date,
-         currentDateTime: Date,
-         timeFormate: TimeFormate) {
-        self.minDateTime = minDateTime
-        self.maxDateTime = maxDateTime
-        self.currentDateTime = currentDateTime
-        self.timeFormate = timeFormate
-        
-        setDatasource()
-    }
-    
-    var defaultHours: [Int] {
-        return timeFormate == .hour12 ? [Int](0...11) : [Int](0...23)
-    }
-    
-    func setDatasource(hours: [Int]? = nil, minutes: [Int] = [Int](0...59), seconds: [Int] = [Int](0...59), formate: [Int] = [Int](0...1)) {
-        let hours = hours == nil ? defaultHours : hours
-        if timeFormate == .hour12 {
-            timeModel = [.init(items: hours!), .init(items: minutes), .init(items:seconds), .init(items: formate)]
-        } else {
-            timeModel = [.init(items: hours!) , .init(items: minutes), .init(items:seconds)]
-        }
-    }
-    
-    func getHourMinuteAndSecondTupple(_ date: Date) -> (hour: Int, minute:Int, second: Int)  {
-        let currentTime = getHourMinuteAndSecond(date)
-        return (hour: currentTime[0], minute:currentTime[1], second: currentTime[2])
-    }
-    
-    func getHourMinuteAndSecond(_ date: Date) -> [Int] {
-        let dateTime = normalStyleFormate.string(from: date).components(separatedBy: " ")
-        var time = dateTime[1].components(separatedBy: ":").map({ Int($0)! } )
-        if timeFormate == .hour12 {
-            time.append(dateTime.last == "PM" ? 1 : 0)
-        }
-        return time
-    }
-
-    var currentTimeFormatted: String {
-        let currentTimeTuple = getHourMinuteAndSecondTupple(currentDateTime)
-        return "\(currentTimeTuple.hour)" + ":" + "\(currentTimeTuple.minute)" + ":" + "\(currentTimeTuple.second)"
-    }
-    
-    var maxDateShortFormate: Date {
-        let formatter = Date.shortDateFormatter()
-        return formatter.date(from: formatter.string(from: maxDateTime))!
-    }
-    
-    var currentDateShortFormate: Date {
-        let formatter = Date.shortDateFormatter()
-        return formatter.date(from: formatter.string(from: currentDateTime))!
-    }
-    
-    var normalStyleFormate: DateFormatter {
-        let timeFormate: String = timeFormate == .hour12 ? Date.timePreviewAMPMStyleFormatter().dateFormat : Date.timePreviewStyleFormatter().dateFormat
-        return Date.normalStyleFormatter(timeFormate)
-    }
-    
-    func setSelectedDate(_ selectedDate: String, time: String? = nil) {
-        var selectedDateTime = selectedDate + " "
-        if let time = time {
-            selectedDateTime += time
-        } else {
-            selectedDateTime += currentTimeFormatted
-        }
-        let formatter = Date.normalStyleFormatter()
-        self.currentDateTime = formatter.date(from: selectedDateTime)!
-    }
-    
-    func reconfigureDatasource(_ selectedIndex: [Int]) {
-        let maxtuple = getHourMinuteAndSecondTupple(maxDateTime)
-        if maxDateShortFormate == currentDateShortFormate {
-            if maxtuple.hour == selectedIndex[0] {
-                if selectedIndex[1] >= maxtuple.minute {
-                    setDatasource(hours: [Int](0...maxtuple.hour), minutes: [Int](0...maxtuple.minute), seconds: [Int](0...maxtuple.second))
-                } else {
-                    setDatasource(hours: [Int](0...maxtuple.hour), minutes: [Int](0...maxtuple.minute))
-                }
-            } else {
-                setDatasource(hours: [Int](0...maxtuple.hour))
-            }
-        } else {
-            setDatasource()
-        }
-    }
-}
-
-public enum TimeFormate: String {
-    case hour12
-    case hour24
-}
-
 public protocol TimePickerViewDelegate: AnyObject {
     func updateTime(date: Date)
 }
 
+extension Collection {
+    /// Returns the element at the specified index if it is within bounds, otherwise nil.
+    subscript (safe index: Index) -> Element? {
+        return indices.contains(index) ? self[index] : nil
+    }
+}
+
 public class TimePickerView: UIStackView {
+
+    public enum TimeFormat: String {
+        case h12
+        case h24
+        
+        var hours: [Int] {
+            switch self {
+            case .h12:
+                return Array(1...12)
+            case .h24:
+                return Array(0...23)
+            }
+        }
+        
+        var components: [TimeComponent] {
+            switch self {
+            case .h12:
+                return [.hour, .minute, .second, .format]
+            case .h24:
+                return [.hour, .minute, .second]
+            }
+        }
+    }
     
-    private let viewModel: DateTimePickerViewModel
+    public enum HourFormat: String, CaseIterable {
+        case am = "AM"
+        case pm = "PM"
+    }
     
-    private lazy var timePicker: UIPickerView = {
-        let timePicker = UIPickerView()
-        timePicker.delegate = self
-        timePicker.dataSource = self
-        return timePicker
-    }()
+    public enum TimeComponent: Int, CaseIterable {
+        case hour = 0
+        case minute = 1
+        case second = 2
+        case format = 3
+    }
     
+    // MARK: - Public properties
+    /// The default height in points of each row in the picker view.
+    public var rowHeight: CGFloat = 60.0
+    
+    private var availabelRanges: DateInterval
+    private var selectedDate: Date
+    
+    // MARK: - Private properties
+    private var timeFormat: TimeFormat
+    private var components: [TimeComponent]
+    private var hours: [Int]
+    private var minutes: [Int] = Array(0..<60)
+    private var seconds: [Int] = Array(0..<60)
+    private var hourFormats: [HourFormat] = HourFormat.allCases
+    
+    private var selectedHour: Int?
+    private var selectedMinute: Int?
+    private var selectedSecond: Int?
+    private var selectedHourFormat: HourFormat?
     public weak var delegate: TimePickerViewDelegate?
     
-    public init(minDate: Date, maxDate: Date, currentDate: Date, timeFormate: TimeFormate = .hour24) {
-        self.viewModel = DateTimePickerViewModel(minDateTime: minDate, maxDateTime: maxDate, currentDateTime: currentDate, timeFormate: timeFormate)
+    private var hourRows: Int = 10_000
+    private lazy var hourRowsMiddle: Int = ((hourRows / hours.count) / 2) * hours.count
+    private var minuteRows: Int = 10_000
+    private lazy var minuteRowsMiddle: Int = ((minuteRows / minutes.count) / 2) * minutes.count
+    
+    private var secondRows: Int = 10_000
+    private lazy var secondRowsMiddle: Int = ((secondRows / seconds.count) / 2) * seconds.count
+    // MARK: - Views
+    
+    public var pickerView: UIPickerView = {
+        let pickerView = UIPickerView()
+        return pickerView
+    }()
+    
+    private lazy var colonLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.text = ":"
+        return label
+    }()
+    
+    private lazy var colonLabel2: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.text = ":"
+        return label
+    }()
+    
+    
+    private lazy var colonLabel3: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.text = ":"
+        return label
+    }()
+    
+    private var leftConstraintAnchor: NSLayoutConstraint?
+    private var leftConstraintAnchorcolon2: NSLayoutConstraint?
+    private var leftConstraintAnchorcolon3: NSLayoutConstraint?
+    
+    public init(format: TimeFormat = .h24,
+                availabelRanges: DateInterval,
+                selectedDate: Date) {
+        self.timeFormat = format
+        self.availabelRanges = availabelRanges
+        self.selectedDate = selectedDate
+        self.components = format.components
+        self.hours = format.hours
         super.init(frame: .zero)
-        configureUI()
+        setupViews()
+        updateDateTime(selectedDate)
     }
     
     required init(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func configureUI() {
-        distribution = .equalSpacing
-        addArrangedSubviews([emptyView, timePicker, emptyView])
+    private func updateSelectedDate(_ selectedDate: Date) {
+        self.selectedDate = selectedDate
+    }
+
+    open override func layoutSubviews() {
+        super.layoutSubviews()
+        guard !components.isEmpty else { return }
+        let offset = (frame.width / CGFloat(components.count)) - 2
+        let offset2 = offset * 2
         
-        reloadData()
+        leftConstraintAnchor?.constant = offset
+        leftConstraintAnchor?.isActive = true
+        
+        leftConstraintAnchorcolon2?.constant = offset2
+        leftConstraintAnchorcolon2?.isActive = true
+        
+        colonLabel3.isHidden = timeFormat == .h24
+        if timeFormat == .h12 {
+            let offset3 = offset * 3
+            leftConstraintAnchorcolon3?.constant = offset3
+            leftConstraintAnchorcolon3?.isActive = true
+        }
     }
     
-    var emptyView: UIView {
-        let view = UIView()
-        view.backgroundColor = .red
-        return view
+    open func setupViews() {
+        
+        backgroundColor = .black
+        
+        addArrangedSubview(pickerView)
+        
+        pickerView.addSubview(colonLabel)
+        colonLabel.translatesAutoresizingMaskIntoConstraints = false
+        colonLabel.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+        
+        leftConstraintAnchor = colonLabel.leftAnchor.constraint(equalTo: leftAnchor, constant: 0)
+        
+        
+        pickerView.addSubview(colonLabel2)
+        colonLabel2.translatesAutoresizingMaskIntoConstraints = false
+        colonLabel2.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+        
+        leftConstraintAnchorcolon2 = colonLabel2.leftAnchor.constraint(equalTo: leftAnchor, constant: 0)
+        
+        
+        pickerView.addSubview(colonLabel3)
+        colonLabel3.translatesAutoresizingMaskIntoConstraints = false
+        colonLabel3.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
+        
+        leftConstraintAnchorcolon3 = colonLabel3.leftAnchor.constraint(equalTo: leftAnchor, constant: 0)
+        
+        pickerView.delegate = self
+        pickerView.dataSource = self
     }
     
-    func reloadData() {
-        movePicker()
-        viewModel.reconfigureDatasource(getSelectedPickerIndex())
-        timePicker.reloadAllComponents()
-    }
-    
-    func updateCurrentDate(_ selectedDate: Date) {
-        viewModel.currentDateTime = selectedDate
-        reloadData()
+    open func updateDateTime(_ date: Date) {
+        updateSelectedDate(date)
+        let currentTime = CalendarHelper().getHourMinuteAndSecond(date)
+        if var hour = currentTime.hour, components.count > TimeComponent.hour.rawValue {
+            if timeFormat == .h12 {
+                selectedHourFormat = hour < 12 ? .am : .pm
+                /// 0:00 / midnight to 0:59 add 12 hours and AM to the time:
+                if hour == 0 {
+                    selectedHourFormat = .am
+                    hour += 12
+                }
+                /// From 1:00 to 11:59, simply add AM to the time:
+                if hour >= 1 && hour <= 11 {
+                    selectedHourFormat = .am
+                }
+                /// For times between 13:00 to 23:59, subtract 12 hours and add PM to the time:
+                if hour >= 13 && hour <= 23 {
+                    hour -= 12
+                    selectedHourFormat = .pm
+                }
+            }
+            let neededRowIndex = hourRowsMiddle + hour
+            self.selectedHour = hour
+            switch selectedHourFormat {
+            case .am:
+                pickerView.selectRow(0, inComponent: TimeComponent.format.rawValue, animated: true)
+            case .pm:
+                pickerView.selectRow(1, inComponent: TimeComponent.format.rawValue, animated: true)
+            default:
+                break
+            }
+            switch timeFormat {
+            case .h12 where hours.first == 1:
+                pickerView.selectRow(neededRowIndex - 1, inComponent: TimeComponent.hour.rawValue, animated: true)
+            case .h24:
+                pickerView.selectRow(neededRowIndex, inComponent: TimeComponent.hour.rawValue, animated: true)
+            default:
+                break
+            }
+        }
+        
+        if var minute = currentTime.minute, components.count > TimeComponent.minute.rawValue {
+            let neededRowIndex = minuteRowsMiddle + minute
+            self.selectedMinute = minute
+            pickerView.selectRow(neededRowIndex, inComponent: TimeComponent.minute.rawValue, animated: true)
+        }
+        
+        if var second = currentTime.second, components.count > TimeComponent.second.rawValue {
+            let neededRowIndex = secondRowsMiddle + second
+            self.selectedSecond = second
+            pickerView.selectRow(neededRowIndex, inComponent: TimeComponent.second.rawValue, animated: true)
+        }
     }
 }
 
 extension TimePickerView: UIPickerViewDelegate, UIPickerViewDataSource {
-    
-    private func movePicker() {
-        let currentTime = viewModel.getHourMinuteAndSecond(viewModel.currentDateTime)
-        setSelectedPickerIndex(selectedIndexes: currentTime)
-    }
-    
     public func numberOfComponents(in pickerView: UIPickerView) -> Int {
-        return viewModel.timeModel.count
+        return components.count
     }
     
     public func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        let datasource = viewModel.timeModel[component].items
-        return datasource.count
+        switch components[component] {
+        case .hour:
+            return hourRows
+        case .minute:
+            return minuteRows
+        case .second:
+            return secondRows
+        case .format:
+            return hourFormats.count
+        }
     }
     
     public func pickerView(_ pickerView: UIPickerView, viewForRow row: Int, forComponent component: Int, reusing view: UIView?) -> UIView {
-
-        let datasource = viewModel.timeModel[component]
-        let item = datasource.items[row]
-            
         let label = UILabel()
-        if viewModel.timeFormate == .hour12 && component == 3 {
-            label.text = item == 0 ? "AM" : "PM"
-        } else {
-            label.text = String(format:"%02d", item)
-        }
-        label.textColor = .white
         label.textAlignment = .center
-        
+        label.textColor = .white
+        switch components[component]  {
+        case .hour:
+            label.text = String(format: "%02d", hours[row % hours.count])
+        case .minute:
+            label.text = String(format: "%02d", minutes[row % minutes.count])
+        case .second:
+            label.text = String(format: "%02d", seconds[row % seconds.count])
+        case .format:
+            label.text = hourFormats[row].rawValue
+        }
         return label
     }
     
+    public func pickerView(_ pickerView: UIPickerView, rowHeightForComponent component: Int) -> CGFloat {
+        return rowHeight
+    }
+    
     public func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        let selectedIndexes = getSelectedPickerIndex()
-        viewModel.reconfigureDatasource(selectedIndexes)
-        pickerView.reloadAllComponents()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            let selectedIndexes = self.getSelectedPickerIndex()
-            let currentDate = Date.string(from: self.viewModel.currentDateTime, formatter: Date.shortDateFormatter())
-            self.viewModel.setSelectedDate(currentDate, time: "\(selectedIndexes[0]):\(selectedIndexes[1]):\(selectedIndexes[2])")
-            self.delegate?.updateTime(date: self.viewModel.currentDateTime)
+        switch components[component] {
+        case .hour:
+            self.selectedHour = hours[safe: row % hours.count]
+        case .minute:
+            self.selectedMinute = minutes[safe: row % minutes.count]
+        case .second:
+            self.selectedSecond = seconds[safe: row % seconds.count]
+        case .format:
+            self.selectedHourFormat = hourFormats[safe: row]
+        }
+        guard var hour = selectedHour, let minute = selectedMinute, let selectedSecond = selectedSecond else { return }
+        var calendar = Calendar.current
+        calendar.timeZone = .current
+        switch selectedHourFormat {
+        case .pm where hour >= 1 && hour <= 11:
+            hour += 12
+        case .am where hour == 12:
+            hour -= 12
+        default:
+            break
+        }
+        guard let date = calendar.date(bySettingHour: hour, minute: minute, second: selectedSecond, of:  selectedDate) else {
+            return
+        }
+        
+        if let rangeDate = dateInAvailabelRange(date) {
+            updateDateTime(rangeDate)
+        } else {
+            delegate?.updateTime(date: date)
         }
     }
     
-    public func pickerView(_ pickerView: UIPickerView, widthForComponent component: Int) -> CGFloat {
-        pickerView.frame.width / CGFloat(viewModel.timeModel.count)
-    }
-    
-    private func getSelectedPickerIndex() -> [Int] {
-        var timeIndex = [Int]()
-        for component in 0..<viewModel.timeModel.count {
-            let index = timePicker.selectedRow(inComponent: component)
-            timeIndex.append(index)
+    func dateInAvailabelRange(_ date: Date) -> Date? {
+        if availabelRanges.start.compare(date) == .orderedDescending {
+            return availabelRanges.start
         }
-        return timeIndex
-    }
-    
-    private func setSelectedPickerIndex(selectedIndexes: [Int]) {
-        for component in 0..<viewModel.timeModel.count {
-            self.timePicker.selectRow(selectedIndexes[component], inComponent: component, animated: true)
+        
+        if date.compare(availabelRanges.end) == .orderedDescending {
+            return availabelRanges.end
         }
+        
+        return nil
     }
 }
 
@@ -255,9 +353,9 @@ struct ViewPreview: UIViewRepresentable {
 struct PreviewView_Previews: PreviewProvider {
     static var previews: some View {
         ViewPreview {
-            let fromDate = Calendar.current.date(byAdding: .day, value: -5, to: Date())
-            let nowDate = Calendar.current.date(byAdding: .day, value: 0, to: Date())
-            return TimePickerView(minDate: fromDate!, maxDate: Date(), currentDate: nowDate!, timeFormate: .hour24)
+            let fromDate = Calendar.current.date(byAdding: .day, value: -5, to: Date())!
+            let nowDate = Calendar.current.date(byAdding: .hour, value: 12, to: Date())!
+            return TimePickerView(format: .h12, availabelRanges: .init(start: fromDate, end: nowDate), selectedDate: nowDate)
         }
     }
 }

@@ -83,15 +83,12 @@ public extension Date {
     }
     
     static func timePreviewStyleFormatter() -> DateFormatter {
-        let formatter = DateFormatter()
-        formatter.timeZone = TimeZone.init(secondsFromGMT: 0)
         formatter.dateFormat = "HH:mm:ss"
         
         return formatter
     }
     
     static func timePreviewAMPMStyleFormatter() -> DateFormatter {
-        let formatter = DateFormatter()
         formatter.timeZone = TimeZone.init(secondsFromGMT: 0)
         formatter.dateFormat = "hh:mm:ss a"
         
@@ -99,7 +96,6 @@ public extension Date {
     }
     
     static func timePreviewWithMilliSecondStyleFormatter() -> DateFormatter {
-        let formatter = DateFormatter()
         formatter.timeZone = TimeZone.init(secondsFromGMT: 0)
         formatter.dateFormat = "HH:mm:ss.SSS"
         
@@ -107,7 +103,6 @@ public extension Date {
     }
     
     static func timePreviewAMPMWithMilliSecondStyleFormatter() -> DateFormatter {
-        let formatter = DateFormatter()
         formatter.timeZone = TimeZone.init(secondsFromGMT: 0)
         formatter.dateFormat = "hh:mm:ss.SSS a"
         

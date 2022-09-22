@@ -42,9 +42,18 @@ class CalendarCell: UICollectionViewCell
         fatalError("init(coder:) has not been implemented")
     }
     
-    func configCell(_ day: Int, isEnabled: Bool, isSelected: Bool) {
-        dayOfMonth.text = "\(day)"
+    func configCell(_ datecomponent: DateComponents, isEnabled: Bool, isSelected: Bool) {
+        if checkTodayDate(datecomponent) {
+            dayOfMonth.textColor = .blue
+        } else {
+            dayOfMonth.textColor = isEnabled ? .white : .gray
+        }
+        dayOfMonth.text = "\(datecomponent.day!)"
         stackview.backgroundColor = isSelected ? .systemBlue : .clear
-        dayOfMonth.textColor = isEnabled ? .white : .gray
+        
+    }
+    
+    func checkTodayDate(_ dateComponent: DateComponents) -> Bool {
+        CalendarHelper().isToday(dateComponent)
     }
 }
