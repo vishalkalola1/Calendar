@@ -74,8 +74,8 @@ public protocol MultiSelectionDateDelegate: AnyObject {
 
 class ViewController: UIViewController {
     
-    let start = CalendarHelper().getDate(.month, value: -2, date: Date())
-    let end = CalendarHelper().getDate(.hour, value: 0, date: Date())
+    let start = Date.distantPast
+    let end = Date.distantFuture
     let currentDate = CalendarHelper().getDate(.hour, value: 0, date: Date())
     
     private lazy var changeMonthView: MonthYearView = {

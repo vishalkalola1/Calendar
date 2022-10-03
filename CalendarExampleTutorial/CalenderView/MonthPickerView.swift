@@ -184,8 +184,8 @@ struct MonthPickerView_Previews: PreviewProvider {
     static var previews: some View {
         ViewPreview {
             let currentDate = Date()
-            let start = Calendar.current.date(byAdding: .month, value: -7, to: currentDate)!
-            let end = Calendar.current.date(byAdding: .month, value: 3, to: currentDate)!
+            let start = Date.distantPast
+            let end = Date.distantFuture
             return MonthPickerView(availabelRange: .init(start: start, end: end), currentDate: currentDate)
         }
     }

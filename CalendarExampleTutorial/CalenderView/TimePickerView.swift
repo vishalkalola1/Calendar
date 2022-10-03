@@ -228,13 +228,13 @@ public class TimePickerView: UIStackView {
             }
         }
         
-        if var minute = currentTime.minute, components.count > TimeComponent.minute.rawValue {
+        if let minute = currentTime.minute, components.count > TimeComponent.minute.rawValue {
             let neededRowIndex = minuteRowsMiddle + minute
             self.selectedMinute = minute
             pickerView.selectRow(neededRowIndex, inComponent: TimeComponent.minute.rawValue, animated: true)
         }
         
-        if var second = currentTime.second, components.count > TimeComponent.second.rawValue {
+        if let second = currentTime.second, components.count > TimeComponent.second.rawValue {
             let neededRowIndex = secondRowsMiddle + second
             self.selectedSecond = second
             pickerView.selectRow(neededRowIndex, inComponent: TimeComponent.second.rawValue, animated: true)
@@ -353,9 +353,10 @@ struct ViewPreview: UIViewRepresentable {
 struct PreviewView_Previews: PreviewProvider {
     static var previews: some View {
         ViewPreview {
-            let fromDate = Calendar.current.date(byAdding: .day, value: -5, to: Date())!
-            let nowDate = Calendar.current.date(byAdding: .hour, value: 12, to: Date())!
-            return TimePickerView(format: .h12, availabelRanges: .init(start: fromDate, end: nowDate), selectedDate: nowDate)
+            let start = Date.distantPast
+            let end = Date.distantFuture
+            let now = Date()
+            return TimePickerView(format: .h12, availabelRanges: .init(start: start, end: end), selectedDate: now)
         }
     }
 }
