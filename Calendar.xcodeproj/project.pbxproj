@@ -26,7 +26,7 @@
 
 /* Begin PBXFileReference section */
 		2E09861F25B054A800319099 /* CalendarHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarHelper.swift; sourceTree = "<group>"; };
-		2E49EBA725B02883004453F8 /* CalendarExampleTutorial.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CalendarExampleTutorial.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2E49EBA725B02883004453F8 /* Calendar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Calendar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2E49EBAA25B02883004453F8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2E49EBAC25B02883004453F8 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		2E49EBAE25B02883004453F8 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -58,7 +58,7 @@
 		2E49EB9E25B02883004453F8 = {
 			isa = PBXGroup;
 			children = (
-				2E49EBA925B02883004453F8 /* CalendarExampleTutorial */,
+				2E49EBA925B02883004453F8 /* Calendar */,
 				2E49EBA825B02883004453F8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -66,12 +66,12 @@
 		2E49EBA825B02883004453F8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2E49EBA725B02883004453F8 /* CalendarExampleTutorial.app */,
+				2E49EBA725B02883004453F8 /* Calendar.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		2E49EBA925B02883004453F8 /* CalendarExampleTutorial */ = {
+		2E49EBA925B02883004453F8 /* Calendar */ = {
 			isa = PBXGroup;
 			children = (
 				C9B5B46728D2171400522425 /* CalenderView */,
@@ -85,7 +85,7 @@
 				2E49EBB525B02886004453F8 /* LaunchScreen.storyboard */,
 				2E49EBB825B02886004453F8 /* Info.plist */,
 			);
-			path = CalendarExampleTutorial;
+			path = Calendar;
 			sourceTree = "<group>";
 		};
 		C9B5B46728D2171400522425 /* CalenderView */ = {
@@ -105,9 +105,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		2E49EBA625B02883004453F8 /* CalendarExampleTutorial */ = {
+		2E49EBA625B02883004453F8 /* Calendar */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2E49EBBB25B02886004453F8 /* Build configuration list for PBXNativeTarget "CalendarExampleTutorial" */;
+			buildConfigurationList = 2E49EBBB25B02886004453F8 /* Build configuration list for PBXNativeTarget "Calendar" */;
 			buildPhases = (
 				2E49EBA325B02883004453F8 /* Sources */,
 				2E49EBA425B02883004453F8 /* Frameworks */,
@@ -117,9 +117,9 @@
 			);
 			dependencies = (
 			);
-			name = CalendarExampleTutorial;
+			name = Calendar;
 			productName = CalendarExampleTutorial;
-			productReference = 2E49EBA725B02883004453F8 /* CalendarExampleTutorial.app */;
+			productReference = 2E49EBA725B02883004453F8 /* Calendar.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -136,7 +136,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 2E49EBA225B02883004453F8 /* Build configuration list for PBXProject "CalendarExampleTutorial" */;
+			buildConfigurationList = 2E49EBA225B02883004453F8 /* Build configuration list for PBXProject "Calendar" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -149,7 +149,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				2E49EBA625B02883004453F8 /* CalendarExampleTutorial */,
+				2E49EBA625B02883004453F8 /* Calendar */,
 			);
 		};
 /* End PBXProject section */
@@ -332,7 +332,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = SVKXCL5QB5;
-				INFOPLIST_FILE = CalendarExampleTutorial/Info.plist;
+				INFOPLIST_FILE = Calendar/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -351,7 +351,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = SVKXCL5QB5;
-				INFOPLIST_FILE = CalendarExampleTutorial/Info.plist;
+				INFOPLIST_FILE = Calendar/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -366,7 +366,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		2E49EBA225B02883004453F8 /* Build configuration list for PBXProject "CalendarExampleTutorial" */ = {
+		2E49EBA225B02883004453F8 /* Build configuration list for PBXProject "Calendar" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2E49EBB925B02886004453F8 /* Debug */,
@@ -375,7 +375,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		2E49EBBB25B02886004453F8 /* Build configuration list for PBXNativeTarget "CalendarExampleTutorial" */ = {
+		2E49EBBB25B02886004453F8 /* Build configuration list for PBXNativeTarget "Calendar" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2E49EBBC25B02886004453F8 /* Debug */,
